@@ -7,6 +7,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping(path = "/transactions" , produces = MediaType.APPLICATION_JSON_VALUE , consumes =  MediaType.APPLICATION_JSON_VALUE )
 public class TransactionController {
@@ -19,7 +21,7 @@ public class TransactionController {
     }
 
     @PostMapping
-    public ResponseEntity addTransaction(@RequestBody Transaction transaction){
+    public ResponseEntity addTransaction(@Valid @RequestBody Transaction transaction){
         service.addTransactionStatistic(transaction);
         return ResponseEntity.created(null).build();
     }

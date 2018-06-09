@@ -1,7 +1,7 @@
 package me.efraimgentil.transactionsstatistics.controller;
 
 import me.efraimgentil.transactionsstatistics.domain.Transaction;
-import me.efraimgentil.transactionsstatistics.exception.OldTransactionException;
+import me.efraimgentil.transactionsstatistics.service.exception.OldTransactionException;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;

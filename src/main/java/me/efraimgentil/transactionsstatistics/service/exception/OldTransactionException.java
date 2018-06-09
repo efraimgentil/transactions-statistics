@@ -1,8 +1,6 @@
-package me.efraimgentil.transactionsstatistics.exception;
+package me.efraimgentil.transactionsstatistics.service.exception;
 
 import me.efraimgentil.transactionsstatistics.domain.Transaction;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 
 // I did chose to the approach with @ControllerAdivice for logging purposes

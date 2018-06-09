@@ -1,7 +1,7 @@
 package me.efraimgentil.transactionsstatistics.service;
 
 import me.efraimgentil.transactionsstatistics.domain.Transaction;
-import me.efraimgentil.transactionsstatistics.exception.OldTransactionException;
+import me.efraimgentil.transactionsstatistics.service.exception.OldTransactionException;
 import me.efraimgentil.transactionsstatistics.service.statistic.TransactionStatistics;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,9 +10,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.verify;

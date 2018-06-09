@@ -2,8 +2,7 @@ package me.efraimgentil.transactionsstatistics.service;
 
 import me.efraimgentil.transactionsstatistics.domain.Statistic;
 import me.efraimgentil.transactionsstatistics.domain.Transaction;
-import me.efraimgentil.transactionsstatistics.exception.OldTransactionException;
-import me.efraimgentil.transactionsstatistics.service.statistic.TransactionCacheService;
+import me.efraimgentil.transactionsstatistics.service.exception.OldTransactionException;
 import me.efraimgentil.transactionsstatistics.service.statistic.TransactionStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
