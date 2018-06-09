@@ -2,6 +2,7 @@ package me.efraimgentil.transactionsstatistics.service;
 
 import me.efraimgentil.transactionsstatistics.domain.Transaction;
 import me.efraimgentil.transactionsstatistics.exception.OldTransactionException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -11,7 +12,7 @@ public class TransactionService {
 
     private final Integer rangeInSeconds;
 
-    public TransactionService(Integer rangeInSeconds) {
+    public TransactionService(@Value("${statistics.rangeInSeconds}") Integer rangeInSeconds) {
         this.rangeInSeconds = rangeInSeconds;
     }
 
@@ -19,7 +20,7 @@ public class TransactionService {
         if(isInStatisticRange(transaction)){
 
         }else{
-            throw new OldTransactionException("Transaction too old to be added to statistics" , transaction);
+            throw new OldTransactionException("Transaction too old to be added to statistic" , transaction);
         }
     }
 

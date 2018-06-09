@@ -1,9 +1,5 @@
 package me.efraimgentil.transactionsstatistics.controller;
 
-import io.restassured.builder.ResponseSpecBuilder;
-import io.restassured.matcher.ResponseAwareMatcher;
-import io.restassured.response.Response;
-import io.restassured.response.ValidatableResponse;
 import me.efraimgentil.transactionsstatistics.IntegrationTest;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -12,30 +8,29 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
-import java.time.*;
-import java.time.temporal.TemporalField;
+import java.time.Instant;
 import java.util.HashMap;
 
 import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.when;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.core.Is.is;
 
 public class TransactionControllerIT extends IntegrationTest{
+
+    final String TRANSACTIONS_ENDPOINT = "/transactions";
 
     @Test
     public void shouldReturnCreatedIfTransactionWithinSixtySecondsAgoRange(){
         given()
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .body(new HashMap<String,Object>(){{
                     put("amount" , 10.0);
                     put("timestamp" , Instant.now().toEpochMilli() );
                 }})
         .when()
-            .post("/transactions")
+            .post(TRANSACTIONS_ENDPOINT)
         .then()
                 .assertThat()
-                .statusCode(HttpStatus.CREATED.value())
-                .and().body(isEmptyBody());
+                .body(isEmptyBody())
+                .and().statusCode(HttpStatus.CREATED.value());
     }
 
     @Test
@@ -47,17 +42,14 @@ public class TransactionControllerIT extends IntegrationTest{
                     put("timestamp", Instant.now().minusSeconds(60).toEpochMilli());
                 }})
          .when()
-                .post("/transactions")
+                .post(TRANSACTIONS_ENDPOINT)
          .then().assertThat()
-                .statusCode(HttpStatus.NO_CONTENT.value())
-                .and().body(isEmptyBody());
+                .body(isEmptyBody())
+                .and().statusCode(HttpStatus.NO_CONTENT.value());
     }
 
-
-
-    public Matcher<String> isEmptyBody(){
+    private Matcher<String> isEmptyBody(){
         return new BaseMatcher<String>() {
-
             @Override
             public boolean matches(Object o) {
                 return o.toString().length() == 0;
