@@ -7,15 +7,17 @@ import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.time.Instant;
 import java.util.HashMap;
 
 import static io.restassured.RestAssured.given;
 
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class TransactionControllerIT extends IntegrationTest{
 
-    final String TRANSACTIONS_ENDPOINT = "/transactions";
+    public static final String TRANSACTIONS_ENDPOINT = "/transactions";
 
     @Test
     public void shouldReturnCreatedIfTransactionWithinSixtySecondsAgoRange(){

@@ -2,7 +2,6 @@ package me.efraimgentil.transactionsstatistics.service.statistic;
 
 import me.efraimgentil.transactionsstatistics.domain.Statistic;
 import me.efraimgentil.transactionsstatistics.domain.Transaction;
-import org.assertj.core.data.TemporalOffset;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,13 +13,13 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.withPrecision;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TransactionCacheServiceTest {
@@ -33,7 +32,7 @@ public class TransactionCacheServiceTest {
 
     @Before
     public void setUp(){
-        service = new TransactionCacheService(scheduler , rangeInSeconds);
+        service = spy(new TransactionCacheService(scheduler , rangeInSeconds));
     }
 
 
@@ -41,7 +40,7 @@ public class TransactionCacheServiceTest {
     public void shouldUpdateTheTransactionWithNewZerosValues(){
         TreeMap<Long, List<Transaction>> map = new TreeMap<>();
 
-        service.updateStatistic(map);
+        service.recalculateStatistics(map);
         Statistic statistic = service.getStatistic();
 
         assertThat(statistic).isNotNull();
@@ -61,7 +60,7 @@ public class TransactionCacheServiceTest {
                 new Transaction( 15.55 , now )
         ));
 
-        service.updateStatistic(map);
+        service.recalculateStatistics(map);
         Statistic statistic = service.getStatistic();
 
         assertThat(statistic).isNotNull();
@@ -94,7 +93,7 @@ public class TransactionCacheServiceTest {
                 new Transaction( 1.99 , fiftyNineSecondsAgo )
         ));
 
-        service.updateStatistic(map);
+        service.recalculateStatistics(map);
         Statistic statistic = service.getStatistic();
 
         assertThat(statistic).isNotNull();
@@ -130,6 +129,31 @@ public class TransactionCacheServiceTest {
     }
 
     @Test
+    public void shouldUpdateTheStatisticWithTheNewTransactionValues(){
+        Instant now = Instant.now();
+
+        service.updateCurrentStatistic(new Transaction(1.0 , now.toEpochMilli() ));
+        Statistic statistic = service.getStatistic();
+
+        assertThat(statistic).isNotNull();
+        assertThat(statistic.getSum()).isEqualTo(1.0);
+        assertThat(statistic.getAvg()).isCloseTo(1.0 , withPrecision(0.1));
+        assertThat(statistic.getMax()).isEqualTo(1.0);
+        assertThat(statistic.getMin()).isEqualTo(1.0);
+        assertThat(statistic.getCount()).isEqualTo(1);
+
+        service.updateCurrentStatistic(new Transaction(2.0 , now.toEpochMilli() ));
+        statistic = service.getStatistic();
+
+        assertThat(statistic).isNotNull();
+        assertThat(statistic.getSum()).isEqualTo(3.0);
+        assertThat(statistic.getAvg()).isCloseTo(1.5 , withPrecision(0.1));
+        assertThat(statistic.getMax()).isEqualTo(2.0);
+        assertThat(statistic.getMin()).isEqualTo(1.0);
+        assertThat(statistic.getCount()).isEqualTo(2);
+    }
+
+    @Test
     public void shouldUpdateTheStatisticsWithoutTheExpiredValues(){
         TreeMap<Long, List<Transaction>> map = new TreeMap<>();
         Instant now = Instant.now();
@@ -152,34 +176,16 @@ public class TransactionCacheServiceTest {
         assertThat(statistic.getCount()).isEqualTo(5);
     }
 
-
     @Test
-    public void t(){
-        TreeMap<Long, List<Transaction>> map = new TreeMap<>();
-        long now = Instant.now().toEpochMilli();
-        map.put(now , Arrays.asList(
-                new Transaction( 10.0 , now ),
-                new Transaction( 15.55 , now )
-        ));
-        long tenSecondsAgo = Instant.now().minusSeconds(10).toEpochMilli();
-        map.put(tenSecondsAgo , Arrays.asList(
-                new Transaction( 234.67 , tenSecondsAgo )
-        ));
-        long fiftySecondsAgo = Instant.now().minusSeconds(50).toEpochMilli();
-        map.put(fiftySecondsAgo , Arrays.asList(
-                new Transaction( 8345.95 , fiftySecondsAgo )
-        ));
-        long fiftyNineSecondsAgo = Instant.now().minusSeconds(59).toEpochMilli();
-        map.put(fiftyNineSecondsAgo , Arrays.asList(
-                new Transaction( 1.99 , fiftyNineSecondsAgo )
-        ));
+    public void shouldUpdateStatisticsAndScheduleExpirerForTheTransaction(){
+        Transaction transaction = new Transaction(10.0, Instant.now().toEpochMilli());
+        doNothing().when(service).scheduleExpirer(transaction);
+        doNothing().when(service).updateCurrentStatistic(transaction);
 
-        System.out.println( fiftyNineSecondsAgo );
-        System.out.println( map.firstEntry().getKey());
-        System.out.println( Instant.ofEpochMilli(map.firstEntry().getKey()));
-        System.out.println( now );
-        System.out.println( map.lastEntry().getKey());
-        System.out.println( Instant.ofEpochMilli(map.lastEntry().getKey()) );
+        service.addToStatistic(transaction);
+
+        verify(service).updateCurrentStatistic(transaction);
+        verify(service).scheduleExpirer(transaction);
     }
 
 }
