@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Service
@@ -17,12 +18,15 @@ public class TransactionCacheService implements TransactionStatistics {
 
     private Statistic statistic;
     private final AtomicReference<TreeMap<Long, List<Transaction>>> timedCache;
+    private final AtomicReference<Map<Long, ScheduledFuture>> expirationSchedule;
     private final TaskScheduler scheduler;
     private final Integer rangeInSeconds;
 
     @Autowired
     public TransactionCacheService(TaskScheduler scheduler , @Value("${statistics.rangeInSeconds}") Integer rangeInSeconds) {
         timedCache = new AtomicReference<>(new TreeMap<>());
+        expirationSchedule = new AtomicReference<>(new HashMap<>());
+        this.statistic = Statistic.empty();
         this.scheduler = scheduler;
         this.rangeInSeconds = rangeInSeconds;
     }
@@ -35,12 +39,30 @@ public class TransactionCacheService implements TransactionStatistics {
             map.computeIfAbsent(timestamp,  aLong -> new ArrayList<>() );
             map.computeIfPresent(timestamp, (aLong, transactions) -> { transactions.add(transaction); return transactions; } );
             updateStatistic(transaction);
+            scheduleExpirer(transaction);
             return map;
         });
     }
 
-    protected long getExpirationTime(Transaction t){
-        return Instant.ofEpochMilli(t.getTimestamp()).plusSeconds(rangeInSeconds).toEpochMilli();
+    protected void scheduleExpirer(Transaction transaction){
+        final Long timestamp = transaction.getTimestamp();
+        expirationSchedule.getAndUpdate(scheduleMap -> {
+            scheduleMap.putIfAbsent(timestamp ,
+                 scheduler.schedule(() -> removeExpiredValue(timestamp) , getExpirationTime(transaction)) );
+            return scheduleMap;
+        });
+    }
+
+    protected void removeExpiredValue(Long timestamp){
+        timedCache.getAndUpdate(map -> {
+            TreeMap<Long, List<Transaction>> newMap = new TreeMap<>(map.tailMap(timestamp , false));
+            updateStatistic(newMap);
+            return newMap;
+        });
+    }
+
+    protected Instant getExpirationTime(Transaction t){
+        return Instant.ofEpochMilli(t.getTimestamp()).plusSeconds(rangeInSeconds);
     }
 
     protected void updateStatistic(Transaction t) {

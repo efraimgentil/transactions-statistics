@@ -2,25 +2,32 @@ package me.efraimgentil.transactionsstatistics.service;
 
 import me.efraimgentil.transactionsstatistics.domain.Transaction;
 import me.efraimgentil.transactionsstatistics.exception.OldTransactionException;
+import me.efraimgentil.transactionsstatistics.service.statistic.TransactionStatistics;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.Mockito.verify;
 
 
+@RunWith(MockitoJUnitRunner.class)
 public class TransactionServiceTest {
 
-
     TransactionService service;
+    @Mock
+    TransactionStatistics statistics;
 
     @Before
     public void setUp(){
-        service = new TransactionService(60);
+        service = new TransactionService(60 , statistics);
     }
 
     @Test(expected = OldTransactionException.class)
@@ -35,8 +42,11 @@ public class TransactionServiceTest {
     public void shouldAddTheTransactionToTheStatistics(){
         //Instant uses the UTC time as default
         long timestamp = Instant.now().toEpochMilli();
+        Transaction transaction = new Transaction(0.0, timestamp);
 
-        service.addTransactionStatistic( new Transaction( 0.0 , timestamp ) );
+        service.addTransactionStatistic( transaction );
+
+        verify(statistics).addToStatistic(transaction);
     }
 
     @Test
