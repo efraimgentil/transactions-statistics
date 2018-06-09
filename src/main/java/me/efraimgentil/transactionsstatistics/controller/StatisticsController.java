@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(path = "/statistic" , produces = MediaType.APPLICATION_JSON_VALUE )
+@RequestMapping(path = "/statistics" , produces = MediaType.APPLICATION_JSON_VALUE )
 public class StatisticsController {
 
     private final TransactionService service;

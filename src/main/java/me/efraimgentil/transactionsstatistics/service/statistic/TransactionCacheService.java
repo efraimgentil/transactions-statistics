@@ -35,7 +35,6 @@ public class TransactionCacheService implements TransactionStatistics {
         this.rangeInSeconds = rangeInSeconds;
     }
 
-    @Async
     @Override
     public void addToStatistic(Transaction transaction) {
         Long timestamp = transaction.getTimestamp();
@@ -49,6 +48,11 @@ public class TransactionCacheService implements TransactionStatistics {
         });
     }
 
+    /**
+     * Create a scheduled job to expire the transaction in the given configure range time and
+     * redo the calculations for the statistic
+     * @param transaction
+     */
     protected void scheduleExpirer(Transaction transaction){
         final Long timestamp = transaction.getTimestamp();
         expirationSchedule.getAndUpdate(scheduleMap -> {

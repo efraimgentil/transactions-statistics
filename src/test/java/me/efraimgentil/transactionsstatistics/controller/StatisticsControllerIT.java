@@ -20,7 +20,7 @@ import static org.hamcrest.Matchers.is;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class StatisticsControllerIT extends IntegrationTest{
 
-    final String STATISTICS_ENDPOINT = "/statistic";
+    final String STATISTICS_ENDPOINT = "/statistics";
     final String SUM = "sum";
     final String AVG = "avg";
     final String MAX = "max";
